@@ -1,6 +1,11 @@
 import io
 from io import BytesIO
 
+from wasm_py.parse.types import globaltype
+from wasm_py.parse.types import memtype
+from wasm_py.parse.types import resulttype
+from wasm_py.parse.types import tabletype
+from wasm_py.parse.types import valtype
 from wasm_py.values import read_byte
 from wasm_py.values import read_u32
 
@@ -10,22 +15,6 @@ def custom_section(stream: BytesIO):
     size = read_u32(stream)
     stream.seek(size, io.SEEK_CUR)
     print("SKIPPED")
-
-
-def resulttype(stream: BytesIO):
-    n = read_u32(stream)
-    for _ in range(n):
-        t = read_byte(stream)
-        if t == 0x7F:
-            print("i32")
-        elif t == 0x7E:
-            print("i64")
-        elif t == 0x7D:
-            print("f32")
-        elif t == 0x7C:
-            print("f64")
-        else:
-            raise Exception(f"{hex(t)} is not defined")
 
 
 def type_section(stream: BytesIO):
@@ -59,35 +48,6 @@ def function_section(stream: BytesIO):
         print("funcidx", read_u32(stream))
 
 
-def reftype(stream: BytesIO):
-    byte = read_byte(stream)
-    print(byte)
-    if byte == 0x70:
-        print("funcref")
-    elif byte == 0x6F:
-        print("externref")
-    else:
-        raise Exception("Unknown reftpye")
-
-
-def limits(stream: BytesIO):
-    byte = read_byte(stream)
-    if byte == 0x00:
-        n = read_u32(stream)
-        print(f"limits: ({n}, any)")
-    elif byte == 0x01:
-        n = read_u32(stream)
-        m = read_u32(stream)
-        print(f"limits: ({n}, {m})")
-    else:
-        raise Exception("Unknown limits")
-
-
-def tabletype(stream: BytesIO):
-    reftype(stream)
-    limits(stream)
-
-
 def table_section(stream: BytesIO):
     print("Parsing table_section")
     size = read_u32(stream)
@@ -95,10 +55,6 @@ def table_section(stream: BytesIO):
     n = read_u32(stream)
     for i in range(n):
         tabletype(stream)
-
-
-def memtype(stream: BytesIO):
-    limits(stream)
 
 
 def mem(stream: BytesIO):
@@ -120,57 +76,6 @@ def expr(stream: BytesIO):
         byte = read_byte(stream)
     # XXX: we are searching for 0x0B but it could be part of a valid instruction.
     print("Finished reading instructions")
-
-
-def mul(stream: BytesIO):
-    byte = read_byte(stream)
-    if byte == 0x00:
-        print("const")
-    elif byte == 0x01:
-        print("var")
-    else:
-        raise Exception(f"{hex(byte)} is not defined")
-
-
-def numtype(stream: BytesIO):
-    byte = read_byte(stream)
-    if byte == 0x7F:
-        print("i32")
-    elif byte == 0x7E:
-        print("i64")
-    elif byte == 0x7D:
-        print("f32")
-    elif byte == 0x7C:
-        print("f64")
-    else:
-        raise Exception(f"{byte} is not defined")
-
-
-def vectype(stream: BytesIO):
-    byte = read_byte(stream)
-    if byte == 0x7B:
-        print("v128")
-    else:
-        raise Exception(f"{hex(byte)} is not defined")
-
-
-def valtype(stream: BytesIO):
-    byte = read_byte(stream)
-    print("valtype", hex(byte))
-    stream.seek(-1, io.SEEK_CUR)
-    if byte in [0x7F, 0x5E, 0x7D, 0x7C]:
-        numtype(stream)
-    elif byte == 0x7B:
-        vectype(stream)
-    elif byte in [0x70, 0x6F]:
-        reftype(stream)
-    else:
-        raise Exception("Unknown valtype")
-
-
-def globaltype(stream: BytesIO):
-    valtype(stream)
-    mul(stream)
 
 
 def global_section(stream: BytesIO):
@@ -270,3 +175,20 @@ def data_count_section(stream: BytesIO):
     print(size)
     stream.seek(size, io.SEEK_CUR)
     print("SKIPPED")
+
+
+SECTIONS = {
+    0: custom_section,
+    1: type_section,
+    2: import_section,
+    3: function_section,
+    4: table_section,
+    5: memory_section,
+    6: global_section,
+    7: export_section,
+    8: start_section,
+    9: element_section,
+    10: code_section,
+    11: data_section,
+    12: data_count_section,
+}
