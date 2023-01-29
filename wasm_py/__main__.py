@@ -1,10 +1,13 @@
 import io
+import logging
 from io import BytesIO
 
 from wasm_py.core.module import Module
 from wasm_py.parse.sections import read_byte
 from wasm_py.parse.sections import SECTIONS
 from wasm_py.utils.parser import get_args
+
+logger = logging.getLogger(__name__)
 
 
 def read_wasm(fp: str) -> BytesIO:
@@ -25,7 +28,7 @@ def check_version(version: bytes) -> None:
 
 def next_section(stream: BytesIO, module: Module) -> None:
     section = read_byte(stream)
-    print(f"section {section}")
+    logger.debug(f"section {section}")
     SECTIONS[section](stream, module)
 
 
@@ -44,6 +47,7 @@ def parse_wasm(stream: BytesIO) -> Module:
 
 def main():
     args = get_args()
+    logging.basicConfig(level=logging.getLevelName(args.level))
     stream = read_wasm(args.wasm)
     parse_wasm(stream)
 

@@ -1,4 +1,5 @@
 import io
+import logging
 from io import BytesIO
 
 from wasm_py.core.module import Module
@@ -9,6 +10,8 @@ from wasm_py.parse.types import tabletype
 from wasm_py.parse.types import valtype
 from wasm_py.values import read_byte
 from wasm_py.values import read_u32
+
+logger = logging.getLogger(__name__)
 
 
 def validity(func):
@@ -22,34 +25,34 @@ def validity(func):
 
 
 def custom_section(stream: BytesIO, module: Module):
-    print("Parsing custom_section")
+    logger.debug("Parsing custom_section")
     size = read_u32(stream)
     stream.seek(size, io.SEEK_CUR)
-    print("SKIPPED")
+    logger.debug("SKIPPED")
 
 
 @validity
 def type_section(stream: BytesIO, module: Module) -> None:
-    print("Parsing type_section")
+    logger.debug("Parsing type_section")
     module.set_types([functype(stream) for _ in range(read_u32(stream))])
 
 
 def import_section(stream: BytesIO, module: Module):
-    print("Parsing import_section")
+    logger.debug("Parsing import_section")
     size = read_u32(stream)
     stream.seek(size, io.SEEK_CUR)
 
 
 @validity
 def function_section(stream: BytesIO, module: Module) -> None:
-    print("Parsing function_section")
+    logger.debug("Parsing function_section")
     module.set_type_indices([read_u32(stream) for _ in range(read_u32(stream))])
 
 
 def table_section(stream: BytesIO, module: Module):
-    print("Parsing table_section")
+    logger.debug("Parsing table_section")
     size = read_u32(stream)
-    print(size)
+    logger.debug(size)
     n = read_u32(stream)
     for i in range(n):
         tabletype(stream)
@@ -60,9 +63,9 @@ def mem(stream: BytesIO):
 
 
 def memory_section(stream: BytesIO, module: Module):
-    print("Parsing memory_section")
+    logger.debug("Parsing memory_section")
     size = read_u32(stream)
-    print(size)
+    logger.debug(size)
     n = read_u32(stream)
     for i in range(n):
         mem(stream)
@@ -73,13 +76,13 @@ def expr(stream: BytesIO):
     while byte != 0x0B:
         byte = read_byte(stream)
     # XXX: we are searching for 0x0B but it could be part of a valid instruction.
-    print("Finished reading instructions")
+    logger.debug("Finished reading instructions")
 
 
 def global_section(stream: BytesIO, module: Module):
-    print("Parsing global_section")
+    logger.debug("Parsing global_section")
     size = read_u32(stream)
-    print(size)
+    logger.debug(size)
     n = read_u32(stream)
     for i in range(n):
         globaltype(stream)
@@ -89,25 +92,25 @@ def global_section(stream: BytesIO, module: Module):
 def name(stream: BytesIO):
     n = read_u32(stream)
     name = stream.read(n)
-    print("name:", str(name))
+    logger.debug(f"name: {str(name)}")
 
 
 def exportdesc(stream: BytesIO):
     byte = read_byte(stream)
     if byte == 0x00:
-        print("funcidx", read_u32(stream))
+        logger.debug(f"funcidx {read_u32(stream)}")
     elif byte == 0x01:
-        print("tableidx", read_u32(stream))
+        logger.debug(f"tableidx {read_u32(stream)}")
     elif byte == 0x02:
-        print("memidx", read_u32(stream))
+        logger.debug(f"memidx {read_u32(stream)}")
     elif byte == 0x03:
-        print("globalidx", read_u32(stream))
+        logger.debug(f"globalidx {read_u32(stream)}")
     else:
         raise Exception("Unknown valtype")
 
 
 def export_section(stream: BytesIO, module: Module):
-    print("Parsing export_section")
+    logger.debug("Parsing export_section")
     _ = read_u32(stream)  # size
     n = read_u32(stream)
     for i in range(n):
@@ -116,17 +119,17 @@ def export_section(stream: BytesIO, module: Module):
 
 
 def start_section(stream: BytesIO, module: Module):
-    print("Parsing start_section")
+    logger.debug("Parsing start_section")
     size = read_u32(stream)
-    print(size)
+    logger.debug(size)
     stream.seek(size, io.SEEK_CUR)
-    print("SKIPPED")
+    logger.debug("SKIPPED")
 
 
 def element_section(stream: BytesIO, module: Module):
-    print("Parsing element_section")
+    logger.debug("Parsing element_section")
     size = read_u32(stream)
-    print(size)
+    logger.debug(size)
     stream.seek(size, io.SEEK_CUR)
 
 
@@ -137,7 +140,7 @@ def _locals(stream: BytesIO):
 
 def func(stream: BytesIO):
     n = read_u32(stream)
-    print("locals", n)
+    logger.debug(f"locals {n}")
     for i in range(n):
         _locals(stream)
     expr(stream)
@@ -145,34 +148,34 @@ def func(stream: BytesIO):
 
 def code(stream: BytesIO):
     size = read_u32(stream)
-    print("size:", size)
+    logger.debug(f"size: {size}")
     func(stream)
 
 
 def code_section(stream: BytesIO, module: Module):
-    print("Parsing code_section")
+    logger.debug("Parsing code_section")
     size = read_u32(stream)
-    print(size)
+    logger.debug(size)
     n = read_u32(stream)
     for i in range(n):
-        print(f"Reading code {i}-th")
+        logger.debug(f"Reading code {i}-th")
         code(stream)
 
 
 def data_section(stream: BytesIO, module: Module):
-    print("Parsing data_section")
+    logger.debug("Parsing data_section")
     size = read_u32(stream)
-    print(size)
+    logger.debug(size)
     stream.seek(size, io.SEEK_CUR)
-    print("SKIPPED")
+    logger.debug("SKIPPED")
 
 
 def data_count_section(stream: BytesIO, module: Module):
-    print("Parsing data_count_section")
+    logger.debug("Parsing data_count_section")
     size = read_u32(stream)
-    print(size)
+    logger.debug(size)
     stream.seek(size, io.SEEK_CUR)
-    print("SKIPPED")
+    logger.debug("SKIPPED")
 
 
 SECTIONS = {

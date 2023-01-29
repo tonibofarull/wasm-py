@@ -1,4 +1,8 @@
+import logging
+
 from wasm_py.core.function import FunctionType
+
+logger = logging.getLogger(__name__)
 
 
 class Module:
@@ -7,9 +11,9 @@ class Module:
         self._type_indices: None | list[int] = None
 
     def set_types(self, types: list[FunctionType]):
-        print(types)
+        logger.debug(types)
         self._types = types
 
     def set_type_indices(self, type_indices: list[int]):
-        print(type_indices)
+        logger.debug(type_indices)
         self._type_indices = type_indices

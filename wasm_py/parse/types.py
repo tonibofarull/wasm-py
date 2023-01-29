@@ -3,6 +3,7 @@ Types:
 https://webassembly.github.io/spec/core/binary/types.html
 """
 import io
+import logging
 from io import BytesIO
 from typing import Any
 
@@ -14,13 +15,15 @@ from wasm_py.core.function import FunctionType
 from wasm_py.values import read_byte
 from wasm_py.values import read_u32
 
+logger = logging.getLogger(__name__)
+
 
 def _selector(stream: BytesIO, mapping: dict) -> Any:
     byte = read_byte(stream)
     if byte not in mapping:
         raise Exception(f"byte {byte} is not defined")
     res = mapping[byte]
-    print(res)
+    logger.debug(res)
     return res
 
 
@@ -101,13 +104,13 @@ def limits(stream: BytesIO):
 
     def _limit_unbounded(stream):
         n = read_u32(stream)
-        print(f"limits: ({n}, any)")
+        logger.debug(f"limits: ({n}, any)")
         return n, None
 
     def _limit_bounded(stream):
         n = read_u32(stream)
         m = read_u32(stream)
-        print(f"limits: ({n}, {m})")
+        logger.debug(f"limits: ({n}, {m})")
         return n, m
 
     func = _selector(

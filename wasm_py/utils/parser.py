@@ -10,4 +10,10 @@ def get_args() -> Namespace:
         help="Path to .wasm",
         type=str,
     )
+    parser.add_argument(
+        "--level",
+        type=str,
+        default="DEBUG",
+        choices=["CRITICAL", "ERROR", "WARN", "INFO", "DEBUG"],
+    )
     return parser.parse_args()
