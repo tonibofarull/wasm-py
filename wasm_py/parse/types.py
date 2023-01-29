@@ -10,11 +10,12 @@ from wasm_py.core.enums import Mut
 from wasm_py.core.enums import NumType
 from wasm_py.core.enums import ReferenceType
 from wasm_py.core.enums import VectorType
-from wasm_py.core.models.function import FunctionType
-from wasm_py.core.models.limits import Limits
-from wasm_py.core.models.memory import MemoryType
-from wasm_py.core.models.number import i32
+from wasm_py.core.models.glob import GlobType
 from wasm_py.core.models.table import TableType
+from wasm_py.core.models.types.function_type import FunctionType
+from wasm_py.core.models.types.limits import Limits
+from wasm_py.core.models.types.mem_type import MemType
+from wasm_py.core.models.values.number import i32
 from wasm_py.parse.utils import selector
 from wasm_py.parse.values import read_u32
 
@@ -116,7 +117,7 @@ def memtype(stream: BytesIO):
     """
     https://webassembly.github.io/spec/core/binary/types.html#memory-types
     """
-    return MemoryType(lim=limits(stream))
+    return MemType(lim=limits(stream))
 
 
 def tabletype(stream: BytesIO):
@@ -136,9 +137,12 @@ def mut(stream: BytesIO):
     )
 
 
-def globaltype(stream: BytesIO):
+def globtype(stream: BytesIO):
     """
     https://webassembly.github.io/spec/core/binary/types.html#global-types
     """
-    valtype(stream)
-    mut(stream)
+    v = valtype(stream)
+    print(v)
+    m = mut(stream)
+    print(m)
+    return GlobType(valtype=v, mut=m)

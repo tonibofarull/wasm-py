@@ -2,9 +2,11 @@ import io
 import logging
 from io import BytesIO
 
+from wasm_py.core.models.glob import Expr
+from wasm_py.core.models.glob import Glob
 from wasm_py.core.module import Module
 from wasm_py.parse.types import functype
-from wasm_py.parse.types import globaltype
+from wasm_py.parse.types import globtype
 from wasm_py.parse.types import memtype
 from wasm_py.parse.types import tabletype
 from wasm_py.parse.types import valtype
@@ -68,22 +70,19 @@ def expr(stream: BytesIO):
         byte = read_byte(stream)
     # XXX: we are searching for 0x0B but it could be part of a valid instruction.
     logger.debug("Finished reading instructions")
+    return Expr(val=None)
 
 
+@validity
 def global_section(stream: BytesIO, module: Module):
     logger.debug("Parsing global_section")
-    size = read_u32(stream)
-    logger.debug(size)
-    n = read_u32(stream)
-    for i in range(n):
-        globaltype(stream)
-        expr(stream)
-
-
-def name(stream: BytesIO):
-    n = read_u32(stream)
-    name = stream.read(n)
-    logger.debug(f"name: {str(name)}")
+    # TODO: implement
+    module.set_memory(
+        [
+            Glob(globtype=globtype(stream), expr=expr(stream))
+            for _ in range(read_u32(stream))
+        ]
+    )
 
 
 def exportdesc(stream: BytesIO):
@@ -103,6 +102,12 @@ def export_section(stream: BytesIO, module: Module):
     logger.debug("Parsing export_section")
     _ = read_u32(stream)  # size
     n = read_u32(stream)
+
+    def name(stream: BytesIO):
+        n = read_u32(stream)
+        name = stream.read(n)
+        logger.debug(f"name: {str(name)}")
+
     for i in range(n):
         name(stream)
         exportdesc(stream)

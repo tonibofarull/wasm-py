@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from wasm_py.core.models.number import i32
+from wasm_py.core.models.values.number import i32
 
 
 class Limits(BaseModel):

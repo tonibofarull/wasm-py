@@ -18,12 +18,6 @@ class ReferenceType(Enum):
     externref = auto()
 
 
-class ValueType(Enum):
-    numtype = auto()
-    vectype = auto()
-    reftype = auto()
-
-
 class Mut(Enum):
     const = auto()
     var = auto()
