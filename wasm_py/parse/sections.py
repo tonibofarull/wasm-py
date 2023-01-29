@@ -50,13 +50,10 @@ def function_section(stream: BytesIO, module: Module) -> None:
     module.set_type_indices([read_u32(stream) for _ in range(read_u32(stream))])
 
 
+@validity
 def table_section(stream: BytesIO, module: Module):
     logger.debug("Parsing table_section")
-    size = read_u32(stream)
-    logger.debug(size)
-    n = read_u32(stream)
-    for i in range(n):
-        tabletype(stream)
+    module.set_tables([tabletype(stream) for _ in range(read_u32(stream))])
 
 
 def mem(stream: BytesIO):

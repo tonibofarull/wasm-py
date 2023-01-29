@@ -10,7 +10,10 @@ from wasm_py.core.enums import Mut
 from wasm_py.core.enums import NumType
 from wasm_py.core.enums import ReferenceType
 from wasm_py.core.enums import VectorType
-from wasm_py.core.function import FunctionType
+from wasm_py.core.models.function import FunctionType
+from wasm_py.core.models.limits import Limits
+from wasm_py.core.models.number import i32
+from wasm_py.core.models.table import TableType
 from wasm_py.parse.utils import selector
 from wasm_py.parse.values import read_u32
 
@@ -93,15 +96,10 @@ def limits(stream: BytesIO):
     """
 
     def _limit_unbounded(stream):
-        n = read_u32(stream)
-        logger.debug(f"limits: ({n}, any)")
-        return n, None
+        return Limits(min=i32(value=read_u32(stream)), max=None)
 
     def _limit_bounded(stream):
-        n = read_u32(stream)
-        m = read_u32(stream)
-        logger.debug(f"limits: ({n}, {m})")
-        return n, m
+        return Limits(min=i32(value=read_u32(stream)), max=i32(value=read_u32(stream)))
 
     func = selector(
         stream,
@@ -124,8 +122,7 @@ def tabletype(stream: BytesIO):
     """
     https://webassembly.github.io/spec/core/binary/types.html#table-types
     """
-    reftype(stream)
-    limits(stream)
+    return TableType(reftype=reftype(stream), lim=limits(stream))
 
 
 def mut(stream: BytesIO):

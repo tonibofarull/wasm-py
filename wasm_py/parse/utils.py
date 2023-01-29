@@ -12,5 +12,4 @@ def selector(stream: BytesIO, mapping: dict) -> Any:
     if byte not in mapping:
         raise Exception(f"byte {byte} is not defined")
     res = mapping[byte]
-    logger.debug(res)
     return res
