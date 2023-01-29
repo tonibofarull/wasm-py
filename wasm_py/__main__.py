@@ -25,7 +25,7 @@ def check_version(version: bytes) -> None:
 def next_section(stream: BytesIO) -> None:
     section = read_byte(stream)
     print(f"section {section}")
-    SECTIONS[section](stream)
+    print(SECTIONS[section](stream))
 
 
 def parse_wasm(stream: BytesIO):

@@ -6,10 +6,11 @@ import io
 from io import BytesIO
 from typing import Any
 
-from wasm_py.core.types import Mut
-from wasm_py.core.types import NumType
-from wasm_py.core.types import ReferenceType
-from wasm_py.core.types import VectorType
+from wasm_py.core.enums import Mut
+from wasm_py.core.enums import NumType
+from wasm_py.core.enums import ReferenceType
+from wasm_py.core.enums import VectorType
+from wasm_py.core.function import FunctionType
 from wasm_py.values import read_byte
 from wasm_py.values import read_u32
 
@@ -82,19 +83,15 @@ def resulttype(stream: BytesIO):
     """
     https://webassembly.github.io/spec/core/binary/types.html#result-types
     """
-    n = read_u32(stream)
-    for _ in range(n):
-        numtype(stream)
+    return [numtype(stream) for _ in range(read_u32(stream))]
 
 
 def functype(stream: BytesIO):
     """
     https://webassembly.github.io/spec/core/binary/types.html#function-types
     """
-    n = read_u32(stream)
-    assert n == 0x60
-    resulttype(stream)
-    resulttype(stream)
+    assert read_u32(stream) == 0x60, "Invalid functype flag"
+    return FunctionType(inputs=resulttype(stream), outputs=resulttype(stream))
 
 
 def limits(stream: BytesIO):
