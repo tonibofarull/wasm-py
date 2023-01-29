@@ -56,17 +56,10 @@ def table_section(stream: BytesIO, module: Module):
     module.set_tables([tabletype(stream) for _ in range(read_u32(stream))])
 
 
-def mem(stream: BytesIO):
-    memtype(stream)
-
-
+@validity
 def memory_section(stream: BytesIO, module: Module):
     logger.debug("Parsing memory_section")
-    size = read_u32(stream)
-    logger.debug(size)
-    n = read_u32(stream)
-    for i in range(n):
-        mem(stream)
+    module.set_memory([memtype(stream) for _ in range(read_u32(stream))])
 
 
 def expr(stream: BytesIO):

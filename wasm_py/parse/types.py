@@ -12,6 +12,7 @@ from wasm_py.core.enums import ReferenceType
 from wasm_py.core.enums import VectorType
 from wasm_py.core.models.function import FunctionType
 from wasm_py.core.models.limits import Limits
+from wasm_py.core.models.memory import MemoryType
 from wasm_py.core.models.number import i32
 from wasm_py.core.models.table import TableType
 from wasm_py.parse.utils import selector
@@ -115,7 +116,7 @@ def memtype(stream: BytesIO):
     """
     https://webassembly.github.io/spec/core/binary/types.html#memory-types
     """
-    limits(stream)
+    return MemoryType(lim=limits(stream))
 
 
 def tabletype(stream: BytesIO):
