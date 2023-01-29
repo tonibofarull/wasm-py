@@ -2,7 +2,7 @@ import logging
 from io import BytesIO
 from typing import Any
 
-from wasm_py.values import read_byte
+from wasm_py.parse.values import read_byte
 
 logger = logging.getLogger(__name__)
 

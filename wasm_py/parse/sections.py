@@ -9,8 +9,8 @@ from wasm_py.parse.types import memtype
 from wasm_py.parse.types import tabletype
 from wasm_py.parse.types import valtype
 from wasm_py.parse.utils import selector
-from wasm_py.values import read_byte
-from wasm_py.values import read_u32
+from wasm_py.parse.values import read_byte
+from wasm_py.parse.values import read_u32
 
 logger = logging.getLogger(__name__)
 

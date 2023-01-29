@@ -12,7 +12,7 @@ from wasm_py.core.enums import ReferenceType
 from wasm_py.core.enums import VectorType
 from wasm_py.core.function import FunctionType
 from wasm_py.parse.utils import selector
-from wasm_py.values import read_u32
+from wasm_py.parse.values import read_u32
 
 logger = logging.getLogger(__name__)
 
