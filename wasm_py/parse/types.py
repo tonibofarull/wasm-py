@@ -5,33 +5,23 @@ https://webassembly.github.io/spec/core/binary/types.html
 import io
 import logging
 from io import BytesIO
-from typing import Any
 
 from wasm_py.core.enums import Mut
 from wasm_py.core.enums import NumType
 from wasm_py.core.enums import ReferenceType
 from wasm_py.core.enums import VectorType
 from wasm_py.core.function import FunctionType
-from wasm_py.values import read_byte
+from wasm_py.parse.utils import selector
 from wasm_py.values import read_u32
 
 logger = logging.getLogger(__name__)
-
-
-def _selector(stream: BytesIO, mapping: dict) -> Any:
-    byte = read_byte(stream)
-    if byte not in mapping:
-        raise Exception(f"byte {byte} is not defined")
-    res = mapping[byte]
-    logger.debug(res)
-    return res
 
 
 def numtype(stream: BytesIO) -> NumType:
     """
     https://webassembly.github.io/spec/core/binary/types.html#number-types
     """
-    return _selector(
+    return selector(
         stream,
         {
             0x7F: NumType.i32,
@@ -46,14 +36,14 @@ def vectype(stream: BytesIO) -> VectorType:
     """
     https://webassembly.github.io/spec/core/binary/types.html#vector-types
     """
-    return _selector(stream, {0x7B: VectorType.v128})
+    return selector(stream, {0x7B: VectorType.v128})
 
 
 def reftype(stream: BytesIO):
     """
     https://webassembly.github.io/spec/core/binary/types.html#reference-types
     """
-    return _selector(
+    return selector(
         stream,
         {
             0x70: ReferenceType.funcref,
@@ -66,7 +56,7 @@ def valtype(stream: BytesIO):
     """
     https://webassembly.github.io/spec/core/binary/types.html#value-types
     """
-    func = _selector(
+    func = selector(
         stream,
         {
             0x7F: numtype,
@@ -113,7 +103,7 @@ def limits(stream: BytesIO):
         logger.debug(f"limits: ({n}, {m})")
         return n, m
 
-    func = _selector(
+    func = selector(
         stream,
         {
             0x00: _limit_unbounded,
@@ -139,7 +129,7 @@ def tabletype(stream: BytesIO):
 
 
 def mut(stream: BytesIO):
-    return _selector(
+    return selector(
         stream,
         {
             0x00: Mut.const,

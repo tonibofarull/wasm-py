@@ -8,6 +8,7 @@ from wasm_py.parse.types import globaltype
 from wasm_py.parse.types import memtype
 from wasm_py.parse.types import tabletype
 from wasm_py.parse.types import valtype
+from wasm_py.parse.utils import selector
 from wasm_py.values import read_byte
 from wasm_py.values import read_u32
 
@@ -96,17 +97,16 @@ def name(stream: BytesIO):
 
 
 def exportdesc(stream: BytesIO):
-    byte = read_byte(stream)
-    if byte == 0x00:
-        logger.debug(f"funcidx {read_u32(stream)}")
-    elif byte == 0x01:
-        logger.debug(f"tableidx {read_u32(stream)}")
-    elif byte == 0x02:
-        logger.debug(f"memidx {read_u32(stream)}")
-    elif byte == 0x03:
-        logger.debug(f"globalidx {read_u32(stream)}")
-    else:
-        raise Exception("Unknown valtype")
+    func = selector(
+        stream,
+        {
+            0x00: lambda: logger.debug(f"funcidx {read_u32(stream)}"),
+            0x01: lambda: logger.debug(f"tableidx {read_u32(stream)}"),
+            0x02: lambda: logger.debug(f"memidx {read_u32(stream)}"),
+            0x03: lambda: logger.debug(f"globalidx {read_u32(stream)}"),
+        },
+    )
+    func()
 
 
 def export_section(stream: BytesIO, module: Module):
