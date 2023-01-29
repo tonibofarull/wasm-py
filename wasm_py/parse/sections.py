@@ -1,6 +1,7 @@
 import io
 from io import BytesIO
 
+from wasm_py.core.module import Module
 from wasm_py.parse.types import functype
 from wasm_py.parse.types import globaltype
 from wasm_py.parse.types import memtype
@@ -11,17 +12,16 @@ from wasm_py.values import read_u32
 
 
 def validity(func):
-    def decorator(stream):
+    def decorator(stream, module):
         size = read_u32(stream)
         start_offset = stream.tell()
-        res = func(stream)
+        func(stream, module)
         assert stream.tell() - start_offset == size, "Invalid section format"
-        return res
 
     return decorator
 
 
-def custom_section(stream: BytesIO):
+def custom_section(stream: BytesIO, module: Module):
     print("Parsing custom_section")
     size = read_u32(stream)
     stream.seek(size, io.SEEK_CUR)
@@ -29,24 +29,24 @@ def custom_section(stream: BytesIO):
 
 
 @validity
-def type_section(stream: BytesIO):
+def type_section(stream: BytesIO, module: Module) -> None:
     print("Parsing type_section")
-    return [functype(stream) for _ in range(read_u32(stream))]
+    module.set_types([functype(stream) for _ in range(read_u32(stream))])
 
 
-def import_section(stream: BytesIO):
+def import_section(stream: BytesIO, module: Module):
     print("Parsing import_section")
     size = read_u32(stream)
     stream.seek(size, io.SEEK_CUR)
 
 
 @validity
-def function_section(stream: BytesIO):
+def function_section(stream: BytesIO, module: Module) -> None:
     print("Parsing function_section")
-    return [read_u32(stream) for _ in range(read_u32(stream))]
+    module.set_type_indices([read_u32(stream) for _ in range(read_u32(stream))])
 
 
-def table_section(stream: BytesIO):
+def table_section(stream: BytesIO, module: Module):
     print("Parsing table_section")
     size = read_u32(stream)
     print(size)
@@ -59,7 +59,7 @@ def mem(stream: BytesIO):
     memtype(stream)
 
 
-def memory_section(stream: BytesIO):
+def memory_section(stream: BytesIO, module: Module):
     print("Parsing memory_section")
     size = read_u32(stream)
     print(size)
@@ -76,7 +76,7 @@ def expr(stream: BytesIO):
     print("Finished reading instructions")
 
 
-def global_section(stream: BytesIO):
+def global_section(stream: BytesIO, module: Module):
     print("Parsing global_section")
     size = read_u32(stream)
     print(size)
@@ -106,7 +106,7 @@ def exportdesc(stream: BytesIO):
         raise Exception("Unknown valtype")
 
 
-def export_section(stream: BytesIO):
+def export_section(stream: BytesIO, module: Module):
     print("Parsing export_section")
     _ = read_u32(stream)  # size
     n = read_u32(stream)
@@ -115,7 +115,7 @@ def export_section(stream: BytesIO):
         exportdesc(stream)
 
 
-def start_section(stream: BytesIO):
+def start_section(stream: BytesIO, module: Module):
     print("Parsing start_section")
     size = read_u32(stream)
     print(size)
@@ -123,7 +123,7 @@ def start_section(stream: BytesIO):
     print("SKIPPED")
 
 
-def element_section(stream: BytesIO):
+def element_section(stream: BytesIO, module: Module):
     print("Parsing element_section")
     size = read_u32(stream)
     print(size)
@@ -149,7 +149,7 @@ def code(stream: BytesIO):
     func(stream)
 
 
-def code_section(stream: BytesIO):
+def code_section(stream: BytesIO, module: Module):
     print("Parsing code_section")
     size = read_u32(stream)
     print(size)
@@ -159,7 +159,7 @@ def code_section(stream: BytesIO):
         code(stream)
 
 
-def data_section(stream: BytesIO):
+def data_section(stream: BytesIO, module: Module):
     print("Parsing data_section")
     size = read_u32(stream)
     print(size)
@@ -167,7 +167,7 @@ def data_section(stream: BytesIO):
     print("SKIPPED")
 
 
-def data_count_section(stream: BytesIO):
+def data_count_section(stream: BytesIO, module: Module):
     print("Parsing data_count_section")
     size = read_u32(stream)
     print(size)
