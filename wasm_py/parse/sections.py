@@ -5,6 +5,8 @@ from io import BytesIO
 from wasm_py.core.models.glob import Expr
 from wasm_py.core.models.glob import Glob
 from wasm_py.core.module import Module
+from wasm_py.parse.instr import instr
+from wasm_py.parse.instr_opcode import InstrOpCode
 from wasm_py.parse.types import functype
 from wasm_py.parse.types import globtype
 from wasm_py.parse.types import memtype
@@ -18,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def validity(func):
-    def decorator(stream, module):
+    def decorator(stream, module=None):
         size = read_u32(stream)
         start_offset = stream.tell()
         func(stream, module)
@@ -65,12 +67,15 @@ def memory_section(stream: BytesIO, module: Module):
 
 
 def expr(stream: BytesIO):
-    byte = read_byte(stream)
-    while byte != 0x0B:
+    logger.debug("Reading expr...")
+    instrs = []
+    while True:
         byte = read_byte(stream)
-    # XXX: we are searching for 0x0B but it could be part of a valid instruction.
-    logger.debug("Finished reading instructions")
-    return Expr(val=None)
+        if byte == InstrOpCode.END.value:
+            break
+        stream.seek(-1, io.SEEK_CUR)
+        instrs.append(instr(stream))
+    return Expr(val=instrs)
 
 
 @validity
@@ -98,16 +103,15 @@ def exportdesc(stream: BytesIO):
     func()
 
 
+@validity
 def export_section(stream: BytesIO, module: Module):
-    logger.debug("Parsing export_section")
-    _ = read_u32(stream)  # size
-    n = read_u32(stream)
-
     def name(stream: BytesIO):
         n = read_u32(stream)
         name = stream.read(n)
         logger.debug(f"name: {str(name)}")
 
+    logger.debug("Parsing export_section")
+    n = read_u32(stream)
     for i in range(n):
         name(stream)
         exportdesc(stream)
@@ -141,20 +145,18 @@ def func(stream: BytesIO):
     expr(stream)
 
 
-def code(stream: BytesIO):
-    size = read_u32(stream)
-    logger.debug(f"size: {size}")
+@validity
+def code(stream: BytesIO, module: Module):
     func(stream)
 
 
+@validity
 def code_section(stream: BytesIO, module: Module):
     logger.debug("Parsing code_section")
-    size = read_u32(stream)
-    logger.debug(size)
     n = read_u32(stream)
     for i in range(n):
         logger.debug(f"Reading code {i}-th")
-        code(stream)
+        code(stream, module)
 
 
 def data_section(stream: BytesIO, module: Module):

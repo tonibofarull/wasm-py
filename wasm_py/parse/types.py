@@ -141,8 +141,6 @@ def globtype(stream: BytesIO):
     """
     https://webassembly.github.io/spec/core/binary/types.html#global-types
     """
-    v = valtype(stream)
-    print(v)
-    m = mut(stream)
-    print(m)
-    return GlobType(valtype=v, mut=m)
+    a = GlobType(valtype=valtype(stream), mut=mut(stream))
+    logger.debug(a)
+    return a

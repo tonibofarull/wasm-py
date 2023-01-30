@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 
 def selector(stream: BytesIO, mapping: dict) -> Any:
     byte = read_byte(stream)
+    logger.debug(f"{hex(byte)}")
     if byte not in mapping:
-        raise Exception(f"byte {byte} is not defined")
+        raise Exception(f"byte {hex(byte)} is not defined")
     res = mapping[byte]
     return res
