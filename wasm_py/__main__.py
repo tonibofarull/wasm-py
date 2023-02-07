@@ -31,6 +31,10 @@ def next_section(stream: BytesIO, module: Module) -> None:
     logger.debug(
         f"############################ Section {section} ############################"
     )
+    size = read_byte(stream)
+    cont = stream.read(size)
+    logger.debug(f"{section=}, {size=}, {cont=}")
+    stream.seek(-size-1, io.SEEK_CUR)
     SECTIONS[section](stream, module)
 
 
